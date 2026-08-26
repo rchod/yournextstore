@@ -53,9 +53,9 @@ async function getStoreMetadata(): Promise<Metadata> {
 		},
 		description: storeDescription,
 		applicationName: storeName,
-		alternates: {
-			canonical: "/",
-		},
+		// No `alternates.canonical` here on purpose: Next inherits it into every page that
+		// does not set its own, which silently declares each such page a duplicate of the
+		// home page. The home page carries its own canonical in app/page.tsx instead.
 		openGraph: {
 			type: "website",
 			siteName: storeName,

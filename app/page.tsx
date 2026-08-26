@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ProductGridSkeleton } from "@/components/product-grid-skeleton";
 import { About } from "@/components/sections/about";
@@ -18,6 +19,10 @@ function FeaturedProductsSkeleton() {
 		</section>
 	);
 }
+
+export const metadata: Metadata = {
+	alternates: { canonical: "/" },
+};
 
 export default function Home() {
 	return (
