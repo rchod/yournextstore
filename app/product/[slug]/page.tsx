@@ -73,11 +73,22 @@ function StarRow({ rating }: { rating: number }) {
 	);
 }
 
+// `productGet` resolves the API error rather than null for a missing slug, so the
+// `!product` branches below are unreachable without this: the throw escapes the
+// streamed Suspense boundary and the route answers 200 with an empty shell.
+async function safeProductGet(slug: string) {
+	try {
+		return await commerce.productGet({ idOrSlug: slug });
+	} catch {
+		return null;
+	}
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
 	"use cache";
 	cacheLife("minutes");
 	const { slug } = await params;
-	const product = await commerce.productGet({ idOrSlug: slug });
+	const product = await safeProductGet(slug);
 
 	if (!product) {
 		return { title: "Product Not Found", robots: { index: false, follow: true } };
@@ -126,8 +137,10 @@ const getProductPageData = async (slug: string) => {
 	const reviewsEnabled = me?.store.settings?.enabledTools?.reviews ?? false;
 	const restockNotificationsEnabled = me?.store.settings?.enabledTools?.restockNotifications ?? false;
 	const [product, reviews] = await Promise.all([
-		commerce.productGet({ idOrSlug: slug }),
-		reviewsEnabled ? commerce.productReviewsBrowse({ idOrSlug: slug }, { limit: 20 }) : Promise.resolve(null),
+		safeProductGet(slug),
+		reviewsEnabled
+			? commerce.productReviewsBrowse({ idOrSlug: slug }, { limit: 20 }).catch(() => null)
+			: Promise.resolve(null),
 	]);
 
 	return { product, reviews, restockNotificationsEnabled };
