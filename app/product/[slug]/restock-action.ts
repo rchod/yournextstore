@@ -12,6 +12,8 @@ type RestockState = {
 export async function subscribeToRestock(_prev: RestockState, formData: FormData): Promise<RestockState> {
 	const productVariantId = formData.get("productVariantId");
 	const email = formData.get("email");
+	// Optional — only a ticked box makes the address a marketing subscriber.
+	const marketingConsent = formData.get("marketingConsent") === "on";
 
 	if (!productVariantId || typeof productVariantId !== "string") {
 		return { success: false, message: "", error: "Something went wrong. Please try again." };
@@ -24,7 +26,7 @@ export async function subscribeToRestock(_prev: RestockState, formData: FormData
 	const [error, result] = await try_(
 		commerce.request<{ status: string }>("/availability-notifications", {
 			method: "POST",
-			body: { email, productVariantId },
+			body: { email, productVariantId, marketingConsent },
 		}),
 	);
 	if (error) {
